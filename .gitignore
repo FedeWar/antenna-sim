@@ -1,2 +1,5 @@
-*ignore_this*	# I have a folder with some temporary files, it will be removed later on
+# I have a folder with some temporary files, it will be removed later on
+*ignore_this*
+
+# Python
 *__pycache__*
