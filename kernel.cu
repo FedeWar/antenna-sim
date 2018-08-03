@@ -11,6 +11,12 @@ extern _CRTIMP __host__ __device__ __device_builtin__ float __cdecl expf(float) 
 extern _CRTIMP __host__ __device__ __device_builtin__ float __cdecl abs(float) __THROW;
 extern __device__ __device_builtin__ void sincosf(float x, float *sptr, float *cptr) __THROW;
 
+__device__ cuComplex operator*(float2 v, float a)
+{
+	return make_float2(v.x * a, v.y * a);
+}
+
+/*
 __device__ cuComplex cmul(const cuComplex& c, float a)
 {
 	return make_cuComplex(c.x * a, c.y * a);
@@ -22,6 +28,7 @@ __device__ cuComplex cdot(const cuComplex& c1, const cuComplex& c2)
 		c1.x * c2.x - c1.y * c2.y,
 		c1.x * c2.y + c1.y * c2.x);
 }
+*/
 
 __device__ float2& operator+=(float2& a, const float2& b)
 {
@@ -57,7 +64,7 @@ struct complex2
 
 	__device__ complex2 operator*(const float a) const
 	{
-		return complex2(cmul(x, a), cmul(y, a));
+		return complex2(x * a, y * a);
 	}
 
 	__device__ complex2& operator*=(const float a)
@@ -71,7 +78,7 @@ struct complex2
 
 	__device__ complex2 operator*(const cuComplex& c) const
 	{
-		return complex2(cdot(x, c), cdot(y, c));
+		return complex2(cuCmulf(x, c), cuCmulf(y, c));
 	}
 
 	__device__ complex2& operator+=(const complex2& c)
@@ -153,10 +160,10 @@ __device__ cuComplex G(const float3& r, const float3& r1)
 	const cuComplex k = make_cuComplex(1, 0);
 
 	const float rr1 = vabs(sub(r, r1)) + epsilon;
-	const cuComplex N = cexp(cmul(k, rr1));
+	const cuComplex N = cexp(k * rr1);
 	const float D = 1.0f / (4 * pi * rr1);
 
-	return cmul(N, D);
+	return N * D;
 }
 
 /*
