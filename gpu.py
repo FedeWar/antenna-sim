@@ -7,10 +7,8 @@ from pycuda.compiler import SourceModule
 from matplotlib import pyplot as plt
 import numpy.linalg as la
 import numpy as np
-# OpenCV2
-import cv2
-# Standard
-import math as m
+# Std
+import os
 
 def compute(volume, offset):
 	bsize = (32, 32, 1)
@@ -27,7 +25,9 @@ def compute(volume, offset):
 		'\n#define DEPTH ' + str(volume[2]) + \
 		'\n#define bdepth ' + str(1) + '\n' # inutile
 	
-	cufile = open('antenna-sim/kernel.cpp', 'r')
+	# Non optimal method
+	path = os.path.split(__file__)
+	cufile = open(path[0] + '/kernel.cu', 'r')
 	code = cufile.read()
 	code = code.replace('%DEFINES%', DEFINES)
 	mod = SourceModule(code, "nvcc",
