@@ -37,10 +37,10 @@ def main(argv):
 	if not use_gpu and volume[2] > 1:
 		print("The CPU solver does not support 3D computations. The Z dimension is ignored.")
 
-	if '--iso-surf' in argv and not use_gpu:
+	if '--iso-surf' in argv and use_gpu:
 		arg_idx = argv.index('--iso-surf')
 		iso_surf = np.array(eval('(' + argv[arg_idx + 1] + ')'))
-	elif use_gpu:
+	elif not use_gpu:
 		print("The isosurface computation is not supported when using the CPU solver.")
 
 	offset = volume / 2
