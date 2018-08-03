@@ -26,11 +26,24 @@ def compute(volume, offset):
 		'\n#define bdepth ' + str(1) + '\n' # inutile
 	
 	# Non optimal method
-	path = os.path.split(__file__)
-	cufile = open(path[0] + '/kernel.cu', 'r')
-	code = cufile.read()
-	code = code.replace('%DEFINES%', DEFINES)
-	mod = SourceModule(code, "nvcc",
+	path = os.path.split(__file__)[0] + '/cuda/'
+
+	kernel_cu = open(path + 'kernel.cu', 'r')
+	kernel_buf = kernel_cu.read()
+	
+	# Load complex2.cu
+	complex2_cu = open(path + 'complex2.cu', 'r')
+	complex2_buf = complex2_cu.read()
+
+	# Load vectors.cu
+	vectors_cu = open(path + 'vectors.cu', 'r')
+	vectors_buf = vectors_cu.read()
+
+	# Import cu files inside the kernel and copy the defines
+	cu_buffer = vectors_buf + '\n' + complex2_buf
+	kernel_buf = kernel_buf.replace('%DEFINES%', DEFINES).replace('%CUFILES%', cu_buffer)
+
+	mod = SourceModule(kernel_buf, "nvcc",
 		include_dirs=["/usr/local/cuda/include"],
 		no_extern_c=True)
 	compute = mod.get_function("compute")
@@ -38,17 +51,6 @@ def compute(volume, offset):
 	# Array di uscita
 	dest = np.zeros(volume[0] * volume[1] * volume[2]).astype(np.float32)
 
-	# Il numero di elementi, infinitamente piccoli,
-	# che compongono l'antenna
-	pieces = 100
-
-	# Lista dei vettori di corrente impressa che fluisce nell'antenna,
-	# 2 = la corrente è difinita da due vettori: posizione e valore
-	# 4 = ogni vettore è composto da 4 elementi, usiamo float4 per
-	# migliore allineamento in memoria.
-	# TODO NON USATO
-	#geometry = np.zeros(2 * pieces * 4).astype(np.float32)
-	
 	compute(drv.Out(dest), block=bsize, grid=gsize)
 	context.synchronize()
 
