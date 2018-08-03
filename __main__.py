@@ -20,23 +20,28 @@ ax = fig.gca(projection='3d')
 np.set_printoptions(threshold=np.inf)
 
 def main(argv):
-
 	use_gpu = False
-	if '--use-gpu' in argv:
-		use_gpu = True
+	iso_surf = (0.04,)
+	volume = None
 
-	volume = np.array([32, 32, 1])
+	use_gpu = '--use-gpu' in argv
+	# Prevents errors or warnings when using the default settings
+	if use_gpu:
+		volume = np.array([32, 32, 32])
+	else:
+		volume = np.array([32, 32, 1])
+
 	if '--volume' in argv:
 		arg_idx = argv.index('--volume')
 		volume = np.array(eval('(' + argv[arg_idx + 1] + ')'))
-
-	iso_surf = (0.04,)
-	if '--iso-surf' in argv:
-		arg_idx = argv.index('--iso-surf')
-		iso_surf = np.array(eval('(' + argv[arg_idx + 1] + ')'))
-
 	if not use_gpu and volume[2] > 1:
 		print("The CPU solver does not support 3D computations. The Z dimension is ignored.")
+
+	if '--iso-surf' in argv and not use_gpu:
+		arg_idx = argv.index('--iso-surf')
+		iso_surf = np.array(eval('(' + argv[arg_idx + 1] + ')'))
+	elif use_gpu:
+		print("The isosurface computation is not supported when using the CPU solver.")
 
 	offset = volume / 2
 
